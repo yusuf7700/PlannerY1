@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4F3A93">
+<meta name="description" content="PlannerY — kundalik vazifalar, xarajatlar va kalendaringizni boshqaring.">
+
+<title>PlannerY</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="background"></div>
+
+<!--================ LOGIN MODAL ================-->
+<div id="authModal" class="modal">
+  <div class="modal-box">
+    <span class="modal-eyebrow">Boshlashdan oldin</span>
+    <h2>PlannerY'ga xush kelibsiz</h2>
+    <p>Kunlaringizni tartibga soling — vazifalar, xarajatlar va kalendar bir joyda.</p>
+
+    <button id="googleLoginBtn" class="google-btn" type="button">
+      <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.4 0 6.4 1.2 8.8 3.5l6.5-6.5C35.3 2.5 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.6 5.9C12.1 13 17.6 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7c4.3-4 6.8-9.8 6.8-17.4z"/>
+        <path fill="#FBBC05" d="M10.2 19.1c-.5 1.4-.7 2.9-.7 4.4s.3 3 .7 4.4l-7.6 5.9C1 30.5 0 27.3 0 24s1-6.5 2.6-9.8l7.6 5.9z"/>
+        <path fill="#34A853" d="M24 48c6.1 0 11.3-2 15.1-5.5l-7.3-5.7c-2 1.4-4.7 2.2-7.8 2.2-6.4 0-11.9-4.5-13.8-10.6l-7.6 5.9C6.5 42.6 14.6 48 24 48z"/>
+      </svg>
+      <span>Google orqali kirish</span>
+    </button>
+
+    <div class="modal-divider"><span>yoki</span></div>
+
+    <label class="modal-label" for="nameInput">Ismingiz bilan davom eting</label>
+    <input id="nameInput" type="text" placeholder="Masalan: Yusuf" autocomplete="off">
+    <button id="saveName" class="primary-btn" type="button">Davom etish</button>
+
+    <p class="modal-note">☁️ Google bilan kirsangiz, ma'lumotlaringiz internetda saqlanadi va istalgan qurilmadan kira olasiz.</p>
+  </div>
+</div>
+
+<!--================ APP ================-->
+<div class="app">
+
+  <!--================ SIDEBAR (desktop) ================-->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Y</div>
+      <h2>PlannerY</h2>
+    </div>
+
+    <nav id="mainNav">
+      <a data-target="dashboard" class="active"><span class="nav-ico">🏠</span><span>Dashboard</span><i class="tab-flag"></i></a>
+      <a data-target="tasks"><span class="nav-ico">✅</span><span>Vazifalar</span><i class="tab-flag"></i></a>
+      <a data-target="expenses"><span class="nav-ico">💰</span><span>Xarajatlar</span><i class="tab-flag"></i></a>
+      <a data-target="calendar"><span class="nav-ico">📅</span><span>Kalendar</span><i class="tab-flag"></i></a>
+      <a data-target="stats"><span class="nav-ico">📊</span><span>Statistika</span><i class="tab-flag"></i></a>
+      <a data-target="settings"><span class="nav-ico">⚙️</span><span>Sozlamalar</span><i class="tab-flag"></i></a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button id="darkToggleSide" class="icon-toggle" type="button" title="Tungi rejim">🌙</button>
+      <span class="sync-pill" id="syncPillSide">☁️ Lokal</span>
+    </div>
+  </aside>
+
+  <!--================ CONTENT ================-->
+  <main class="content">
+
+    <header>
+      <div>
+        <span class="eyebrow" id="dateEyebrow"></span>
+        <h1 id="welcomeText">Assalomu alaykum 👋</h1>
+      </div>
+
+      <div class="profile" id="profileBtn" title="Profilni tahrirlash">
+        <div class="profile-info">
+          <h3 id="userName">Foydalanuvchi</h3>
+          <span id="liveTime" class="mono-time">00:00:00</span>
+        </div>
+        <div class="avatar" id="avatar">Y</div>
+      </div>
+    </header>
+
+    <!--================ VIEW: DASHBOARD ================-->
+    <section class="view active" id="view-dashboard">
+
+      <section class="progress-card">
+        <div class="progress-copy">
+          <span class="eyebrow">Bugungi holat</span>
+          <h2>Kun progressi</h2>
+          <p>Bugunga rejalashtirilgan vazifalaringiz asosida.</p>
+        </div>
+
+        <div class="dial-wrap">
+          <svg class="dial" viewBox="0 0 140 140">
+            <circle class="dial-track" cx="70" cy="70" r="60"></circle>
+            <circle class="dial-fill" id="dialFill" cx="70" cy="70" r="60"></circle>
+          </svg>
+          <div class="dial-label">
+            <strong id="progressPercent">0%</strong>
+            <span>bajarildi</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats">
+        <div class="card stat-card">
+          <h3>📋 Jami vazifa</h3>
+          <h1 id="totalTasks">0</h1>
+        </div>
+        <div class="card stat-card">
+          <h3>✅ Bajarilgan</h3>
+          <h1 id="completedTasks">0</h1>
+        </div>
+        <div class="card stat-card">
+          <h3>⏳ Qolgan</h3>
+          <h1 id="remainingTasks">0</h1>
+        </div>
+        <div class="card stat-card accent">
+          <h3>💸 Bugungi xarajat</h3>
+          <h1 id="todayExpenseMini">0 so'm</h1>
+        </div>
+      </section>
+
+      <section class="two-col">
+        <div class="card list-card">
+          <div class="card-head">
+            <h2>Bugungi vazifalar</h2>
+            <a class="link-btn" data-target="tasks">Barchasi →</a>
+          </div>
+          <ul id="dashTaskPreview" class="clean-list"></ul>
+        </div>
+
+        <div class="card list-card">
+          <div class="card-head">
+            <h2>So'nggi xarajatlar</h2>
+            <a class="link-btn" data-target="expenses">Barchasi →</a>
+          </div>
+          <ul id="dashExpensePreview" class="clean-list"></ul>
+        </div>
+      </section>
+
+    </section>
+
+    <!--================ VIEW: TASKS ================-->
+    <section class="view" id="view-tasks">
+      <section class="task-add card">
+        <h2>Yangi vazifa</h2>
+        <div class="task-input">
+          <input id="taskInput" type="text" placeholder="Masalan: JavaScript o'rganish">
+          <input id="taskDate" type="date">
+          <button id="addTaskBtn" class="primary-btn">Qo'shish</button>
+        </div>
+      </section>
+
+      <section class="card tasks-card">
+        <div class="card-head">
+          <h2>Barcha vazifalar</h2>
+          <div class="filter-row" id="taskFilters">
+            <button class="chip active" data-filter="all">Hammasi</button>
+            <button class="chip" data-filter="active">Faol</button>
+            <button class="chip" data-filter="done">Bajarilgan</button>
+          </div>
+        </div>
+        <ul id="taskList" class="clean-list"></ul>
+        <p class="empty-hint" id="taskEmptyHint">Hali vazifa yo'q. Yuqoridan qo'shing ✍️</p>
+      </section>
+    </section>
+
+    <!--================ VIEW: EXPENSES ================-->
+    <section class="view" id="view-expenses">
+      <section class="card expense-add">
+        <h2>💰 Yangi xarajat</h2>
+        <div class="expense-input">
+          <input type="text" id="expenseName" placeholder="Masalan: Tushlik">
+          <input type="number" id="expenseAmount" placeholder="So'm" min="0">
+          <select id="expenseCategory">
+            <option value="Oziq-ovqat">🍔 Oziq-ovqat</option>
+            <option value="Transport">🚕 Transport</option>
+            <option value="Kommunal">🏠 Kommunal</option>
+            <option value="Ko'ngilochar">🎮 Ko'ngilochar</option>
+            <option value="Boshqa">📦 Boshqa</option>
+          </select>
+          <button id="addExpenseBtn" class="primary-btn">Qo'shish</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Bugungi xarajatlar</h2>
+          <h3 class="total-pill">Jami: <span id="expenseTotal">0</span> so'm</h3>
+        </div>
+        <ul id="expenseList" class="clean-list"></ul>
+        <p class="empty-hint" id="expenseEmptyHint">Hali xarajat qo'shilmagan.</p>
+      </section>
+    </section>
+
+    <!--================ VIEW: CALENDAR ================-->
+    <section class="view" id="view-calendar">
+      <section class="card calendar-card">
+        <div class="card-head">
+          <h2 id="calendarTitle">Kalendar</h2>
+          <div class="cal-nav">
+            <button id="calPrev" class="icon-toggle">‹</button>
+            <button id="calToday" class="chip">Bugun</button>
+            <button id="calNext" class="icon-toggle">›</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <span>Yak</span><span>Dush</span><span>Sesh</span><span>Chor</span><span>Pay</span><span>Jum</span><span>Shan</span>
+        </div>
+        <div id="calGrid" class="cal-grid"></div>
+      </section>
+
+      <section class="card" id="calDayCard">
+        <div class="card-head">
+          <h2 id="calDayTitle">Kunni tanlang</h2>
+        </div>
+        <ul id="calDayTasks" class="clean-list"></ul>
+        <p class="empty-hint" id="calEmptyHint">Bu kunga vazifa yo'q.</p>
+      </section>
+    </section>
+
+    <!--================ VIEW: STATS ================-->
+    <section class="view" id="view-stats">
+      <section class="stats">
+        <div class="card stat-card">
+          <h3>🔥 Streak</h3>
+          <h1 id="streakCount">0</h1>
+          <p class="stat-sub">kun ketma-ket</p>
+        </div>
+        <div class="card stat-card">
+          <h3>📈 Haftalik bajarish</h3>
+          <h1 id="weeklyRate">0%</h1>
+          <p class="stat-sub">oxirgi 7 kun</p>
+        </div>
+        <div class="card stat-card accent">
+          <h3>💳 Haftalik xarajat</h3>
+          <h1 id="weeklyExpense">0 so'm</h1>
+          <p class="stat-sub">oxirgi 7 kun</p>
+        </div>
+      </section>
+
+      <section class="two-col">
+        <div class="card">
+          <h2>Haftalik bajarilgan vazifalar</h2>
+          <div id="weeklyBars" class="bar-chart"></div>
+        </div>
+        <div class="card">
+          <h2>Xarajatlar toifa bo'yicha</h2>
+          <div id="categoryBars" class="cat-chart"></div>
+        </div>
+      </section>
+    </section>
+
+    <!--================ VIEW: SETTINGS ================-->
+    <section class="view" id="view-settings">
+
+      <section class="card settings-row">
+        <div>
+          <h2>🌙 Tungi rejim</h2>
+          <p>Ko'zga yoqimli qorong'i mavzuga o'ting.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="darkModeSwitch">
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section class="card settings-row">
+        <div>
+          <h2>👤 Profil</h2>
+          <p>Ismingizni o'zgartiring.</p>
+        </div>
+        <button class="secondary-btn" id="editNameBtn">Tahrirlash</button>
+      </section>
+
+      <section class="card settings-row">
+        <div>
+          <h2>☁️ Ma'lumotlarni internetda saqlash</h2>
+          <p id="cloudStatusText">Hozircha faqat shu qurilmada saqlanmoqda. Google orqali kiring — bulutga ulanadi.</p>
+        </div>
+        <button class="secondary-btn" id="cloudConnectBtn">Ulash</button>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>📊 Kirganlar tarixi (Admin)</h2>
+        </div>
+        <p class="empty-hint">Google orqali ulanganingizda, tizimga kimlar va qachon kirgani shu yerda ko'rinadi.</p>
+        <table class="admin-table">
+          <thead><tr><th>Foydalanuvchi</th><th>Oxirgi kirish</th><th>Manba</th></tr></thead>
+          <tbody id="adminTableBody">
+            <tr><td colspan="3" class="empty-row">Hozircha faqat lokal foydalanuvchi mavjud.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card settings-row">
+        <div>
+          <h2>📱 Ilova sifatida o'rnatish</h2>
+          <p>Telefon bosh ekraniga qo'shib, ilova kabi ishlating.</p>
+        </div>
+        <button class="secondary-btn" id="installPwaBtn">O'rnatish</button>
+      </section>
+
+    </section>
+
+  </main>
+</div>
+
+<!--================ MOBILE BOTTOM NAV ================-->
+<nav class="bottom-nav" id="bottomNav">
+  <a data-target="dashboard" class="active"><span>🏠</span></a>
+  <a data-target="tasks"><span>✅</span></a>
+  <a data-target="expenses"><span>💰</span></a>
+  <a data-target="calendar"><span>📅</span></a>
+  <a data-target="stats"><span>📊</span></a>
+  <a data-target="settings"><span>⚙️</span></a>
+</nav>
+
+<!--================ TOAST ================-->
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

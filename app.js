@@ -14,6 +14,8 @@ let firebaseReady = false;
 // firebase function references — filled in once loaded, no-ops until then
 let GoogleAuthProvider = function () {};
 let signInWithPopup = async () => { throw new Error("Firebase hali ulanmagan"); };
+let signInWithRedirect = async () => { throw new Error("Firebase hali ulanmagan"); };
+let getRedirectResult = async () => null;
 let onAuthStateChangedFn = () => {};
 let signOutFn = async () => {};
 let collectionFn = () => null;
@@ -42,6 +44,8 @@ async function initFirebase() {
 
     GoogleAuthProvider = authMod.GoogleAuthProvider;
     signInWithPopup = authMod.signInWithPopup;
+    signInWithRedirect = authMod.signInWithRedirect;
+    getRedirectResult = authMod.getRedirectResult;
     onAuthStateChangedFn = authMod.onAuthStateChanged;
     signOutFn = authMod.signOut;
     collectionFn = fsMod.collection;
@@ -263,13 +267,31 @@ initFirebase();
       showToast("☁️ Bulut ulanishi hali tayyor emas. Lokal serverda (Live Server) ochganingizga ishonch hosil qiling.");
       return;
     }
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       // onAuthStateChanged handles the rest
     } catch (err) {
-      console.error(err);
-      showToast("Kirishda xatolik: " + (err.code || err.message));
+      const popupIssue = [
+        "auth/popup-blocked",
+        "auth/popup-closed-by-user",
+        "auth/cancelled-popup-request",
+        "auth/operation-not-supported-in-this-environment",
+      ].includes(err.code);
+
+      if (popupIssue) {
+        // Mobile browsers (Safari, in-app browsers, etc.) often block
+        // popups — fall back to a full-page redirect instead.
+        try {
+          await signInWithRedirect(auth, provider);
+        } catch (err2) {
+          console.error(err2);
+          showToast("Kirishda xatolik: " + (err2.code || err2.message));
+        }
+      } else {
+        console.error(err);
+        showToast("Kirishda xatolik: " + (err.code || err.message));
+      }
     }
   });
 
@@ -347,6 +369,20 @@ initFirebase();
   } else {
     window.addEventListener("plannery-firebase-ready", registerAuthWatcher, { once: true });
   }
+
+  // Surface any error from a redirect-based sign-in (mobile fallback).
+  // A successful redirect is already handled by onAuthStateChanged above.
+  (async () => {
+    if (!firebaseReady) {
+      await new Promise((resolve) => window.addEventListener("plannery-firebase-ready", resolve, { once: true }));
+    }
+    try {
+      await getRedirectResult(auth);
+    } catch (err) {
+      console.error("redirect natijasi xatosi", err);
+      showToast("Kirishda xatolik: " + (err.code || err.message));
+    }
+  })();
 
   // Show whatever we already have cached locally RIGHT AWAY — this never
   // waits on Firebase, so the app is instantly usable even if the cloud

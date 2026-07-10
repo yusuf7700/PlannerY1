@@ -52,11 +52,12 @@
 <!--================ APP ================-->
 <div class="app">
 
-  <!--================ SIDEBAR (desktop) ================-->
-  <aside class="sidebar">
+  <!--================ SIDEBAR (desktop + mobile drawer) ================-->
+  <aside class="sidebar" id="sidebar">
     <div class="logo">
       <div class="logo-mark">Y</div>
       <h2>PlannerY</h2>
+      <button class="drawer-close" id="drawerClose" aria-label="Yopish">✕</button>
     </div>
 
     <nav id="mainNav">
@@ -64,6 +65,7 @@
       <a data-target="tasks"><span class="nav-ico">✅</span><span>Vazifalar</span><i class="tab-flag"></i></a>
       <a data-target="expenses"><span class="nav-ico">💰</span><span>Xarajatlar</span><i class="tab-flag"></i></a>
       <a data-target="calendar"><span class="nav-ico">📅</span><span>Kalendar</span><i class="tab-flag"></i></a>
+      <a data-target="goals"><span class="nav-ico">🎯</span><span>Maqsadlar</span><i class="tab-flag"></i></a>
       <a data-target="stats"><span class="nav-ico">📊</span><span>Statistika</span><i class="tab-flag"></i></a>
       <a data-target="settings"><span class="nav-ico">⚙️</span><span>Sozlamalar</span><i class="tab-flag"></i></a>
     </nav>
@@ -74,13 +76,20 @@
     </div>
   </aside>
 
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <!--================ CONTENT ================-->
   <main class="content">
 
     <header>
-      <div>
-        <span class="eyebrow" id="dateEyebrow"></span>
-        <h1 id="welcomeText">Assalomu alaykum 👋</h1>
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Menyu">
+          <span></span><span></span><span></span>
+        </button>
+        <div>
+          <span class="eyebrow" id="dateEyebrow"></span>
+          <h1 id="welcomeText">Assalomu alaykum 👋</h1>
+        </div>
       </div>
 
       <div class="profile" id="profileBtn" title="Profilni tahrirlash">
@@ -232,6 +241,36 @@
       </section>
     </section>
 
+    <!--================ VIEW: GOALS ================-->
+    <section class="view" id="view-goals">
+      <section class="card goal-add">
+        <h2>🎯 Yangi maqsad</h2>
+        <div class="goal-input">
+          <input id="goalInput" type="text" placeholder="Masalan: 10 ta kitob o'qish">
+          <select id="goalPeriod">
+            <option value="Haftalik">📆 Haftalik</option>
+            <option value="Oylik">🗓️ Oylik</option>
+            <option value="Yillik">📅 Yillik</option>
+          </select>
+          <button id="addGoalBtn" class="primary-btn">Qo'shish</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Maqsadlarim</h2>
+          <div class="filter-row" id="goalFilters">
+            <button class="chip active" data-filter="all">Hammasi</button>
+            <button class="chip" data-filter="Haftalik">Haftalik</button>
+            <button class="chip" data-filter="Oylik">Oylik</button>
+            <button class="chip" data-filter="Yillik">Yillik</button>
+          </div>
+        </div>
+        <ul id="goalList" class="clean-list"></ul>
+        <p class="empty-hint" id="goalEmptyHint">Hali maqsad qo'shilmagan.</p>
+      </section>
+    </section>
+
     <!--================ VIEW: STATS ================-->
     <section class="view" id="view-stats">
       <section class="stats">
@@ -281,9 +320,12 @@
       <section class="card settings-row">
         <div>
           <h2>👤 Profil</h2>
-          <p>Ismingizni o'zgartiring.</p>
+          <p id="profileMethodText">Ismingizni o'zgartiring.</p>
         </div>
-        <button class="secondary-btn" id="editNameBtn">Tahrirlash</button>
+        <div style="display:flex;gap:10px;">
+          <button class="secondary-btn" id="editNameBtn">Tahrirlash</button>
+          <button class="secondary-btn hidden" id="logoutBtn">Chiqish</button>
+        </div>
       </section>
 
       <section class="card settings-row">
@@ -294,7 +336,7 @@
         <button class="secondary-btn" id="cloudConnectBtn">Ulash</button>
       </section>
 
-      <section class="card">
+      <section class="card hidden" id="adminCard">
         <div class="card-head">
           <h2>📊 Kirganlar tarixi (Admin)</h2>
         </div>
@@ -319,16 +361,6 @@
 
   </main>
 </div>
-
-<!--================ MOBILE BOTTOM NAV ================-->
-<nav class="bottom-nav" id="bottomNav">
-  <a data-target="dashboard" class="active"><span>🏠</span></a>
-  <a data-target="tasks"><span>✅</span></a>
-  <a data-target="expenses"><span>💰</span></a>
-  <a data-target="calendar"><span>📅</span></a>
-  <a data-target="stats"><span>📊</span></a>
-  <a data-target="settings"><span>⚙️</span></a>
-</nav>
 
 <!--================ TOAST ================-->
 <div id="toast"></div>

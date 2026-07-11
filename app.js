@@ -78,7 +78,12 @@ initFirebase();
   const qs = (sel, ctx = document) => ctx.querySelector(sel);
   const qsa = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const todayISO = () => {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  };
 
   function formatMoney(n) {
     return Math.round(n).toLocaleString("uz-UZ");
@@ -570,7 +575,12 @@ initFirebase();
       <li class="task-item ${task.completed ? "completed" : ""}" data-id="${task.id}">
         <div class="task-main">
           <span class="task-text">${escapeHTML(task.text)}</span>
-          <span class="task-date">${formatDatePretty(task.date)}</span>
+          <div class="task-meta">
+            <span class="task-date">${formatDatePretty(task.date)}</span>
+            <span class="task-status ${task.completed ? "done" : "pending"}">
+              ${task.completed ? "✅ Bajarildi" : "⏳ Bajarilmadi"}
+            </span>
+          </div>
         </div>
         <div class="actions">
           <button class="complete-btn" data-action="toggle">✔</button>

@@ -551,7 +551,7 @@ initFirebase();
     const newTask = {
       text,
       date: taskDateInput.value || todayISO(),
-      completed: false,
+      status: "pending",
       createdAt: Date.now(),
     };
     taskInput.value = "";
@@ -570,20 +570,38 @@ initFirebase();
   addTaskBtn.addEventListener("click", addTask);
   taskInput.addEventListener("keypress", (e) => { if (e.key === "Enter") addTask(); });
 
+  // Older tasks (saved before the status system existed) only have a
+  // boolean `completed` field — normalize everything to `status` so the
+  // rest of the app only ever has to deal with one shape.
+  function getStatus(task) {
+    if (task.status) return task.status;
+    return task.completed ? "done" : "pending";
+  }
+
+  const STATUS_LABEL = {
+    pending: "✗ Bajarilmadi",
+    progress: "⏳ Jarayonda",
+    done: "✅ Bajarildi",
+  };
+  const STATUS_ORDER = { pending: 0, progress: 1, done: 2 };
+
   function taskRowHTML(task) {
+    const status = getStatus(task);
     return `
-      <li class="task-item ${task.completed ? "completed" : ""}" data-id="${task.id}">
+      <li class="task-item status-${status}" data-id="${task.id}">
         <div class="task-main">
           <span class="task-text">${escapeHTML(task.text)}</span>
           <div class="task-meta">
             <span class="task-date">${formatDatePretty(task.date)}</span>
-            <span class="task-status ${task.completed ? "done" : "pending"}">
-              ${task.completed ? "✅ Bajarildi" : "⏳ Bajarilmadi"}
-            </span>
+            <span class="task-status ${status}">${STATUS_LABEL[status]}</span>
+          </div>
+          <div class="status-toggle">
+            <button data-action="setstatus" data-status="pending" class="${status === "pending" ? "active" : ""}" title="Bajarilmadi">✗</button>
+            <button data-action="setstatus" data-status="progress" class="${status === "progress" ? "active" : ""}" title="Jarayonda">⏳</button>
+            <button data-action="setstatus" data-status="done" class="${status === "done" ? "active" : ""}" title="Bajarildi">✅</button>
           </div>
         </div>
         <div class="actions">
-          <button class="complete-btn" data-action="toggle">✔</button>
           <button class="delete-btn" data-action="delete">🗑</button>
         </div>
       </li>`;
@@ -604,18 +622,18 @@ initFirebase();
 
   function renderTasks() {
     let filtered = tasks;
-    if (taskFilter === "active") filtered = tasks.filter((t) => !t.completed);
-    if (taskFilter === "done") filtered = tasks.filter((t) => t.completed);
+    if (taskFilter === "active") filtered = tasks.filter((t) => getStatus(t) !== "done");
+    if (taskFilter === "done") filtered = tasks.filter((t) => getStatus(t) === "done");
 
     const sorted = [...filtered].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
     taskList.innerHTML = sorted.map(taskRowHTML).join("");
     taskEmptyHint.classList.toggle("show", sorted.length === 0);
 
-    // dashboard preview: today's tasks, incomplete first
+    // dashboard preview: today's tasks, not-done first
     const today = todayISO();
     const todays = tasks
       .filter((t) => t.date === today)
-      .sort((a, b) => a.completed - b.completed)
+      .sort((a, b) => STATUS_ORDER[getStatus(a)] - STATUS_ORDER[getStatus(b)])
       .slice(0, 5);
     dashTaskPreview.innerHTML = todays.length
       ? todays.map(taskRowHTML).join("")
@@ -633,13 +651,13 @@ initFirebase();
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
-    if (btn.dataset.action === "toggle") {
-      const completed = !task.completed;
+    if (btn.dataset.action === "setstatus") {
+      const status = btn.dataset.status;
       if (cloudMode()) {
-        setDocFn(docFn(db, "users", user.uid, "tasks", id), { completed }, { merge: true })
+        setDocFn(docFn(db, "users", user.uid, "tasks", id), { status }, { merge: true })
           .catch((e2) => console.error("vazifani belgilashda xato", e2));
       } else {
-        task.completed = completed;
+        task.status = status;
         saveTasks();
       }
     } else if (btn.dataset.action === "delete") {
@@ -654,8 +672,13 @@ initFirebase();
   }
 
   function updateTaskStats() {
-    const total = tasks.length;
-    const completed = tasks.filter((t) => t.completed).length;
+    // Dashboard progress reflects TODAY only, so it naturally starts
+    // fresh at 0% every new day instead of counting all-time tasks.
+    const today = todayISO();
+    const todaysTasks = tasks.filter((t) => t.date === today);
+
+    const total = todaysTasks.length;
+    const completed = todaysTasks.filter((t) => getStatus(t) === "done").length;
     const remaining = total - completed;
 
     totalTasksEl.textContent = total;
@@ -669,7 +692,7 @@ initFirebase();
     dialFill.style.strokeDashoffset = circumference - (circumference * percent) / 100;
 
     if (percent === 100 && total > 0 && updateTaskStats._lastPercent !== 100) {
-      showToast("🎉 Barcha vazifalar bajarildi!");
+      showToast("🎉 Bugungi barcha vazifalar bajarildi!");
     }
     updateTaskStats._lastPercent = percent;
   }
@@ -1001,7 +1024,7 @@ initFirebase();
     const days = lastNDays(7);
 
     // weekly completed-task bars
-    const counts = days.map((iso) => tasks.filter((t) => t.date === iso && t.completed).length);
+    const counts = days.map((iso) => tasks.filter((t) => t.date === iso && getStatus(t) === "done").length);
     const maxCount = Math.max(1, ...counts);
     weeklyBars.innerHTML = days
       .map((iso, i) => {
@@ -1016,7 +1039,7 @@ initFirebase();
 
     // weekly rate
     const dayTasksAll = tasks.filter((t) => days.includes(t.date));
-    const doneCount = dayTasksAll.filter((t) => t.completed).length;
+    const doneCount = dayTasksAll.filter((t) => getStatus(t) === "done").length;
     const rate = dayTasksAll.length ? Math.round((doneCount / dayTasksAll.length) * 100) : 0;
     weeklyRateEl.textContent = rate + "%";
 
@@ -1030,7 +1053,7 @@ initFirebase();
       const d = new Date();
       d.setDate(d.getDate() - i);
       const iso = isoOf(d.getFullYear(), d.getMonth(), d.getDate());
-      const hasDone = tasks.some((t) => t.date === iso && t.completed);
+      const hasDone = tasks.some((t) => t.date === iso && getStatus(t) === "done");
       if (hasDone) streak++;
       else break;
     }

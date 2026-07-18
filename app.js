@@ -1100,6 +1100,80 @@ initFirebase();
   darkToggleSide.addEventListener("click", () => applyTheme(document.documentElement.getAttribute("data-theme") !== "dark"));
 
   /* ---------------------------------------------------------------
+     NOTIFICATIONS — daily reminder about today's tasks
+  --------------------------------------------------------------- */
+
+  const notifSwitch = qs("#notifSwitch");
+  const notifTimeRow = qs("#notifTimeRow");
+  const notifTimeInput = qs("#notifTimeInput");
+
+  const notifPrefs = Store.get("plannerY_notif", { enabled: false, time: "09:00", lastFired: null });
+  notifSwitch.checked = notifPrefs.enabled;
+  notifTimeInput.value = notifPrefs.time || "09:00";
+  notifTimeRow.classList.toggle("hidden", !notifPrefs.enabled);
+
+  function saveNotifPrefs() { Store.set("plannerY_notif", notifPrefs); }
+
+  notifSwitch.addEventListener("change", async () => {
+    if (notifSwitch.checked) {
+      if (!("Notification" in window)) {
+        showToast("Brauzeringiz bildirishnomani qo'llab-quvvatlamaydi 😕");
+        notifSwitch.checked = false;
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        showToast("Bildirishnomaga ruxsat berilmadi ❌");
+        notifSwitch.checked = false;
+        return;
+      }
+      notifPrefs.enabled = true;
+      notifTimeRow.classList.remove("hidden");
+      showToast("Bildirishnomalar yoqildi 🔔");
+    } else {
+      notifPrefs.enabled = false;
+      notifTimeRow.classList.add("hidden");
+      showToast("Bildirishnomalar o'chirildi");
+    }
+    saveNotifPrefs();
+  });
+
+  notifTimeInput.addEventListener("change", () => {
+    notifPrefs.time = notifTimeInput.value;
+    saveNotifPrefs();
+  });
+
+  function checkDailyNotification() {
+    if (!notifPrefs.enabled) return;
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    const now = new Date();
+    const nowHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const today = todayISO();
+
+    if (nowHHMM === notifPrefs.time && notifPrefs.lastFired !== today) {
+      const todaysTasks = tasks.filter((t) => t.date === today);
+      const remaining = todaysTasks.filter((t) => getStatus(t) !== "done").length;
+      const body = todaysTasks.length === 0
+        ? "Bugunga hali vazifa qo'shmadingiz. PlannerY'ni ochib rejalashtiring!"
+        : remaining > 0
+        ? `Bugun ${remaining} ta vazifangiz kutmoqda. Omad! 💪`
+        : "Bugungi barcha vazifalar bajarilgan, ajoyib! 🎉";
+
+      new Notification("PlannerY — kunlik eslatma", {
+        body,
+        icon: "icons/icon-192.png",
+        badge: "icons/icon-192.png",
+      });
+
+      notifPrefs.lastFired = today;
+      saveNotifPrefs();
+    }
+  }
+
+  setInterval(checkDailyNotification, 30000);
+
+  /* ---------------------------------------------------------------
      DATE & TIME
   --------------------------------------------------------------- */
 

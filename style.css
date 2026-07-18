@@ -465,6 +465,15 @@ input:focus, select:focus{ background:var(--surface); box-shadow:0 0 0 4px var(-
 .admin-table td{ padding:14px 12px; border-bottom:1px solid var(--border); font-size:14px; }
 .empty-row{ text-align:center; color:var(--ink-soft); }
 
+.feedback-links{ display:flex; gap:12px; flex-wrap:wrap; }
+.feedback-link{
+  display:flex; align-items:center; gap:10px; padding:14px 22px;
+  border-radius:14px; border:1px solid var(--border); background:var(--surface-alt);
+  color:var(--ink); font-weight:600; text-decoration:none; transition:.2s;
+}
+.feedback-link:hover{ border-color:var(--primary-light); color:var(--primary); transform:translateY(-2px); }
+.feedback-link span{ font-size:18px; }
+
 /* =========================================================
    MODAL
    ========================================================= */

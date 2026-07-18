@@ -340,12 +340,46 @@
 
       <section class="card settings-row">
         <div>
+          <h2>🔔 Bildirishnomalar</h2>
+          <p>Har kuni belgilangan vaqtda bugungi vazifalaringiz haqida eslatma oling.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="notifSwitch">
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section class="card settings-row hidden" id="notifTimeRow">
+        <div>
+          <h2>⏰ Eslatma vaqti</h2>
+          <p>Har kuni shu vaqtda bildirishnoma yuboriladi.</p>
+        </div>
+        <input type="time" id="notifTimeInput" value="09:00">
+      </section>
+
+      <section class="card settings-row">
+        <div>
           <h2>👤 Profil</h2>
           <p id="profileMethodText">Ismingizni o'zgartiring.</p>
         </div>
         <div style="display:flex;gap:10px;">
           <button class="secondary-btn" id="editNameBtn">Tahrirlash</button>
           <button class="secondary-btn hidden" id="logoutBtn">Chiqish</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>💬 Taklif va mulohazalar</h2>
+        </div>
+        <p class="empty-hint show" style="text-align:left;padding:0 0 14px;">Ilova bo'yicha taklif, xato haqida xabar yoki fikringiz bo'lsa, yozib qoldiring:</p>
+        <div class="feedback-links">
+          <a href="https://t.me/yuuvsuf" target="_blank" rel="noopener" class="feedback-link">
+            <span>✈️</span> Telegram
+          </a>
+          <a href="https://instagram.com/yunusovvyusuf" target="_blank" rel="noopener" class="feedback-link">
+            <span>📷</span> Instagram
+          </a>
         </div>
       </section>
 

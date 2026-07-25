@@ -1,7 +1,7 @@
 // PlannerY service worker — network-first (always fetch the latest code;
 // cache is only used as an offline fallback, never to serve stale files
 // while online).
-const CACHE_NAME = "plannery-v7";
+const CACHE_NAME = "plannery-v8";
 const ASSETS = [
   "./",
   "./index.html",
@@ -12,6 +12,7 @@ const ASSETS = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/og-image.png",
+  "./icons/qrcode.png",
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,7 +1,7 @@
 // PlannerY service worker — network-first (always fetch the latest code;
 // cache is only used as an offline fallback, never to serve stale files
 // while online).
-const CACHE_NAME = "plannery-v6";
+const CACHE_NAME = "plannery-v7";
 const ASSETS = [
   "./",
   "./index.html",

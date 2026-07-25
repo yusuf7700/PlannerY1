@@ -1178,13 +1178,12 @@ initFirebase();
      Faqat shu 2 qatorni o'zgartiring, qolgani avtomatik yangilanadi.
   --------------------------------------------------------------- */
 
-  const DONATE_CARD_NUMBER = "8600 XXXX XXXX XXXX"; // ← karta raqamini shu yerga yozing
-  const DONATE_CARD_HOLDER = "KARTA EGASI"; // ← ism-familiyangizni shu yerga yozing
+  const DONATE_CARD_NUMBER = "5614 6847 0539 1512";
+  const DONATE_CARD_HOLDER = "Yunusov Yusuf";
 
   const donateCardNumberEl = qs("#donateCardNumber");
   const donateCardHolderEl = qs("#donateCardHolder");
   const copyCardBtn = qs("#copyCardBtn");
-  const donateQr = qs("#donateQr");
 
   donateCardNumberEl.textContent = DONATE_CARD_NUMBER;
   donateCardHolderEl.textContent = DONATE_CARD_HOLDER;
@@ -1209,16 +1208,6 @@ initFirebase();
       }
     });
   });
-
-  if (window.QRCode && donateQr) {
-    new QRCode(donateQr, {
-      text: DONATE_CARD_NUMBER.replace(/\s/g, ""),
-      width: 120,
-      height: 120,
-      colorDark: "#1C1B2E",
-      colorLight: "#ffffff",
-    });
-  }
 
   /* ---------------------------------------------------------------
      DATE & TIME

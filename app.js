@@ -1178,8 +1178,8 @@ initFirebase();
      Faqat shu 2 qatorni o'zgartiring, qolgani avtomatik yangilanadi.
   --------------------------------------------------------------- */
 
-  const DONATE_CARD_NUMBER = "5614 6847 0539 1512"; // ← karta raqamini shu yerga yozing
-  const DONATE_CARD_HOLDER = "YUNUSOV YUSUF"; // ← ism-familiyangizni shu yerga yozing
+  const DONATE_CARD_NUMBER = "8600 XXXX XXXX XXXX"; // ← karta raqamini shu yerga yozing
+  const DONATE_CARD_HOLDER = "KARTA EGASI"; // ← ism-familiyangizni shu yerga yozing
 
   const donateCardNumberEl = qs("#donateCardNumber");
   const donateCardHolderEl = qs("#donateCardHolder");
@@ -1242,6 +1242,24 @@ initFirebase();
 
   let deferredPrompt = null;
   const installPwaBtn = qs("#installPwaBtn");
+  const pwaInstallRow = qs("#pwaInstallRow");
+  const pwaInstallText = qs("#pwaInstallText");
+
+  function isStandalone() {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true // iOS Safari
+    );
+  }
+
+  function markAsInstalled() {
+    installPwaBtn.classList.add("hidden");
+    pwaInstallText.textContent = "✅ Siz allaqachon ilova sifatida foydalanmoqdasiz.";
+  }
+
+  if (isStandalone()) {
+    markAsInstalled();
+  }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -1255,8 +1273,17 @@ initFirebase();
       return;
     }
     deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const choice = await deferredPrompt.userChoice;
     deferredPrompt = null;
+    if (choice.outcome === "accepted") {
+      showToast("🎉 Ilova o'rnatildi!");
+      markAsInstalled();
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    showToast("🎉 Ilova o'rnatildi!");
+    markAsInstalled();
   });
 
   if ("serviceWorker" in navigator) {
@@ -1264,6 +1291,25 @@ initFirebase();
       navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
+
+  const clearCacheBtn = qs("#clearCacheBtn");
+  clearCacheBtn.addEventListener("click", async () => {
+    try {
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      showToast("Kesh tozalandi, sahifa qayta yuklanmoqda ♻️");
+      setTimeout(() => window.location.reload(true), 800);
+    } catch (e) {
+      console.error(e);
+      showToast("Keshni tozalab bo'lmadi");
+    }
+  });
 
   /* ---------------------------------------------------------------
      RENDER ALL

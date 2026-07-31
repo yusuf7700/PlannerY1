@@ -375,6 +375,14 @@ input:focus, select:focus{ background:var(--surface); box-shadow:0 0 0 4px var(-
 }
 .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
 
+.cal-day-subhead{
+  font-family:var(--font-ui); font-size:13px; font-weight:700; color:var(--ink-soft);
+  text-transform:uppercase; letter-spacing:.03em; margin:20px 0 10px;
+  display:flex; align-items:center; gap:10px;
+}
+.cal-day-subhead:first-of-type{ margin-top:4px; }
+.cal-day-subhead .total-pill{ margin-left:auto; text-transform:none; letter-spacing:0; }
+
 .cal-day{
   aspect-ratio:1; border-radius:12px; background:var(--surface-alt);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -385,7 +393,9 @@ input:focus, select:focus{ background:var(--surface); box-shadow:0 0 0 4px var(-
 .cal-day.muted{ opacity:.35; }
 .cal-day.today{ border-color:var(--accent); }
 .cal-day.selected{ background:var(--primary); color:#fff; }
+.cal-dots{ display:flex; gap:3px; align-items:center; height:5px; }
 .cal-day .dot{ width:5px; height:5px; border-radius:50%; background:var(--accent); }
+.cal-day .dot-expense{ background:var(--success); }
 .cal-day.selected .dot{ background:#fff; }
 
 /* =========================================================

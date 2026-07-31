@@ -805,6 +805,9 @@ initFirebase();
   const calDayTitle = qs("#calDayTitle");
   const calDayTasks = qs("#calDayTasks");
   const calEmptyHint = qs("#calEmptyHint");
+  const calDayExpenses = qs("#calDayExpenses");
+  const calExpenseEmptyHint = qs("#calExpenseEmptyHint");
+  const calDayExpenseTotal = qs("#calDayExpenseTotal");
 
   const AY_NOMLARI = ["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"];
 
@@ -845,9 +848,13 @@ initFirebase();
         if (c.iso === today) classes.push("today");
         if (c.iso === selectedDate) classes.push("selected");
         const hasTasks = c.iso && tasks.some((t) => t.date === c.iso);
+        const hasExpenses = c.iso && expenses.some((e) => e.date === c.iso);
         return `<div class="${classes.join(" ")}" data-iso="${c.iso || ""}">
           <span>${c.day}</span>
-          ${hasTasks ? '<span class="dot"></span>' : ""}
+          <span class="cal-dots">
+            ${hasTasks ? '<span class="dot"></span>' : ""}
+            ${hasExpenses ? '<span class="dot dot-expense"></span>' : ""}
+          </span>
         </div>`;
       })
       .join("");
@@ -865,10 +872,19 @@ initFirebase();
   function renderCalDay() {
     const d = new Date(selectedDate + "T00:00:00");
     calDayTitle.textContent = d.toLocaleDateString("uz-UZ", { weekday: "long", day: "numeric", month: "long" });
+
     const dayTasks = tasks.filter((t) => t.date === selectedDate);
     calDayTasks.innerHTML = dayTasks.map(taskRowHTML).join("");
     calEmptyHint.classList.toggle("show", dayTasks.length === 0);
+
+    const dayExpenses = expenses.filter((e) => e.date === selectedDate);
+    calDayExpenses.innerHTML = dayExpenses.map(expenseRowHTML).join("");
+    calExpenseEmptyHint.classList.toggle("show", dayExpenses.length === 0);
+    const dayExpenseTotal = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
+    calDayExpenseTotal.textContent = dayExpenses.length ? `${formatMoney(dayExpenseTotal)} so'm` : "";
   }
+
+  calDayExpenses.addEventListener("click", (e) => handleExpenseDelete(e));
 
   calDayTasks.addEventListener("click", (e) => handleTaskAction(e, calDayTasks));
 
@@ -1059,9 +1075,13 @@ initFirebase();
     }
     streakCountEl.textContent = streak;
 
-    // category breakdown (all-time)
+    // category breakdown — CURRENT MONTH only
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const monthExpenses = expenses.filter((e) => (e.date || "").startsWith(currentMonthKey));
+
     const byCat = {};
-    expenses.forEach((e) => { byCat[e.category] = (byCat[e.category] || 0) + e.amount; });
+    monthExpenses.forEach((e) => { byCat[e.category] = (byCat[e.category] || 0) + e.amount; });
     const total = Object.values(byCat).reduce((a, b) => a + b, 0) || 1;
     const catEntries = Object.entries(CATEGORY_COLORS).map(([cat, color]) => ({
       cat, color, amount: byCat[cat] || 0,
